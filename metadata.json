@@ -1,0 +1,5 @@
+{
+  "name": "MSO 보고서 웹페이지",
+  "description": "A web application to display a published Google Spreadsheet URL behind a password-protected page. It securely verifies the password and dynamically loads the corresponding sheet based on URL parameters.",
+  "requestFramePermissions": []
+}
