@@ -1,11 +1,17 @@
 import type { Report } from '../types';
 
-const MOCK_PASSWORD = "3030";
-
-// This URL points to the Google Sheet "Published to the web" as a CSV.
-// This allows the app to fetch live data without complex authentication.
+// These URLs point to a Google Sheet and export it as CSV.
+// This is a more robust method than "Publish to the web" and is less likely to cause CORS errors.
+// The sheet must be shared with "Anyone with the link".
 // Sheet ID: 19OrJtUPeDOH8jUnWvKTz-dwCmIyH9ub_yJnZYZXZHTI
-const PUBLISHED_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSnI4B4FLE1DS6FBZuPcC688B0TsFaDXoFw4fpCfVSJlmIFozFNPNRUgJpsnJW3c986e8X2c9k_n-18/pub?gid=0&single=true&output=csv';
+const SPREADSHEET_ID = '19OrJtUPeDOH8jUnWvKTz-dwCmIyH9ub_yJnZYZXZHTI';
+const BASE_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv`;
+
+// URL for the password sheet (gid=1372673437)
+const PASSWORD_CSV_URL = `${BASE_URL}&gid=1372673437`;
+
+// URL for the main reports data sheet (gid=0)
+const PUBLISHED_CSV_URL = `${BASE_URL}&gid=0`;
 
 // Cache to avoid re-fetching the sheet data on every interaction.
 let cachedReports: Report[] | null = null;
@@ -41,15 +47,37 @@ const parseCsvToReports = (csvText: string): Report[] => {
     return reports;
 };
 
+/**
+ * Fetches the master password from the Google Sheet.
+ * @returns The master password.
+ */
+const getMasterPassword = async (): Promise<string> => {
+    try {
+        // Use { cache: 'no-store' } to prevent browser caching and ensure the latest password is fetched.
+        // Add a timestamp to the URL to ensure the request is not cached by intermediate proxies.
+        const url = `${PASSWORD_CSV_URL}&t=${new Date().getTime()}`;
+        const response = await fetch(url, { cache: 'no-store' });
+        if (!response.ok) {
+            console.error('Failed to fetch password from Google Sheet. Make sure the sheet is shared with "Anyone with the link".');
+            throw new Error('Could not retrieve password sheet.');
+        }
+        const password = await response.text();
+        return password.trim(); // The CSV for a single cell is just its content. Trim any whitespace/newlines.
+    } catch (error) {
+        console.error("Error fetching password:", error);
+        throw new Error('Could not verify password due to a network error.');
+    }
+}
+
 
 /**
- * Verifies the password.
+ * Verifies the password by fetching the correct one from a Google Sheet.
  * @param inputPassword The password from the user.
  * @returns True if correct, false otherwise.
  */
 export const verifyPassword = async (inputPassword: string): Promise<boolean> => {
-  await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network latency
-  return inputPassword === MOCK_PASSWORD;
+  const masterPassword = await getMasterPassword();
+  return inputPassword === masterPassword;
 };
 
 /**
@@ -65,7 +93,7 @@ export const getReportData = async (): Promise<Report[]> => {
     try {
         const response = await fetch(PUBLISHED_CSV_URL);
         if (!response.ok) {
-            console.error('Failed to fetch Google Sheet data. Make sure it is "Published to the web" as a CSV.');
+            console.error('Failed to fetch Google Sheet data. Make sure it is shared with "Anyone with the link".');
             throw new Error('Could not load report data.');
         }
         const csvText = await response.text();
