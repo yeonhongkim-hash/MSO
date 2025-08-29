@@ -22,15 +22,45 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
 
   const yearMonths = useMemo(() => {
     const uniqueYearMonths = new Set(filteredReports.map(r => r.yearMonth));
+    // Sort descending (e.g., 2507, 2506, ...)
     return Array.from(uniqueYearMonths).sort().reverse();
   }, [filteredReports]);
 
   const branches = useMemo(() => {
     if (!selectedYearMonth) return [];
-    return filteredReports
-      .filter(r => r.yearMonth === selectedYearMonth)
-      .map(r => r.branch)
-      .sort();
+
+    const prefixOrder = ['리팅', '셀팅', '플란', '다이트'];
+    const locationOrder = ['서울', '청담', '부평', '검단', '수원', '동탄', '일산', '부산', '대구', '창원'];
+
+    const getSortKeys = (branchName: string) => {
+      const prefix = prefixOrder.find(p => branchName.startsWith(p));
+      const location = locationOrder.find(l => branchName.includes(l));
+
+      // Assign a large number if not found to sort them to the end
+      const prefixIndex = prefix ? prefixOrder.indexOf(prefix) : Infinity;
+      const locationIndex = location ? locationOrder.indexOf(location) : Infinity;
+
+      return { prefixIndex, locationIndex };
+    };
+
+    const uniqueBranches = Array.from(new Set(
+        filteredReports
+            .filter(r => r.yearMonth === selectedYearMonth)
+            .map(r => r.branch)
+    ));
+
+    return uniqueBranches.sort((a, b) => {
+      const aKeys = getSortKeys(a);
+      const bKeys = getSortKeys(b);
+
+      // 1. Sort by prefix order
+      if (aKeys.prefixIndex !== bKeys.prefixIndex) {
+        return aKeys.prefixIndex - bKeys.prefixIndex;
+      }
+      
+      // 2. If prefix is the same, sort by location order
+      return aKeys.locationIndex - bKeys.locationIndex;
+    });
   }, [filteredReports, selectedYearMonth]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
