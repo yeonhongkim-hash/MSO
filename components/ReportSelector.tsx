@@ -116,6 +116,24 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
           </div>
 
           <div>
+            <label htmlFor="yearMonth" className="block text-sm font-medium text-gray-700 mb-2">
+              병원명
+            </label>
+            <select
+              id="branch"
+              name="branch"
+              value={selectedBranch}
+              onChange={handleYearMonthChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+            >
+              <option value="" disabled>병원 선택</option>
+              {yearMonths.map(ym => (
+                <option key={ym} value={ym}>{ym}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div>
             <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-2">
               지점명
             </label>
