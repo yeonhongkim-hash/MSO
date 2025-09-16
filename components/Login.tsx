@@ -26,7 +26,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, isLoading, error }) => {
   return (
     <div className="w-full max-w-sm bg-white p-8 rounded-xl shadow-lg border border-gray-200">
       <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Secure Viewer</h1>
+        <h1 className="text-2xl font-bold text-gray-800">MSO Reports</h1>
         <p className="text-gray-500 mt-1">Please enter the password to continue.</p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-6">
