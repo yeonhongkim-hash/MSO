@@ -1,7 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import type { Report } from '../types';
-
-type Category = '보고서' | '추가자료';
+import type { Report, Category } from '../types';
 
 interface ReportSelectorProps {
   reports: Report[];
@@ -12,9 +10,11 @@ interface ReportSelectorProps {
 
 const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCategory, onSelect, onBack }) => {
   const [selectedYearMonth, setSelectedYearMonth] = useState('');
+  const [selectedHospital, setSelectedHospital] = useState('');
   const [selectedBranch, setSelectedBranch] = useState('');
 
   const title = `${selectedCategory} 조회`;
+  const showHospitalSelector = selectedCategory === '보고서';
 
   const filteredReports = useMemo(() => {
     return reports.filter(r => r.category === selectedCategory);
@@ -26,10 +26,30 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
     return Array.from(uniqueYearMonths).sort().reverse();
   }, [filteredReports]);
 
+  const prefixOrder = useMemo(() => ['리팅', '셀팅', '플란', '다이트'], []);
+
+  const hospitals = useMemo(() => {
+    if (!selectedYearMonth || !showHospitalSelector) return [];
+    
+    const availableBranches = filteredReports
+        .filter(r => r.yearMonth === selectedYearMonth)
+        .map(r => r.branch);
+        
+    const availablePrefixes = new Set<string>();
+    availableBranches.forEach(branch => {
+        const prefix = prefixOrder.find(p => branch.startsWith(p));
+        if (prefix) {
+            availablePrefixes.add(prefix);
+        }
+    });
+
+    return Array.from(availablePrefixes).sort((a, b) => prefixOrder.indexOf(a) - prefixOrder.indexOf(b));
+  }, [filteredReports, selectedYearMonth, showHospitalSelector, prefixOrder]);
+
   const branches = useMemo(() => {
     if (!selectedYearMonth) return [];
+    if (showHospitalSelector && !selectedHospital) return [];
 
-    const prefixOrder = ['리팅', '셀팅', '플란', '다이트'];
     const locationOrder = ['서울', '청담', '부평', '검단', '수원', '동탄', '일산', '부산', '대구', '창원'];
 
     const getSortKeys = (branchName: string) => {
@@ -46,6 +66,7 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
     const uniqueBranches = Array.from(new Set(
         filteredReports
             .filter(r => r.yearMonth === selectedYearMonth)
+            .filter(r => !showHospitalSelector || r.branch.startsWith(selectedHospital))
             .map(r => r.branch)
     ));
 
@@ -61,7 +82,7 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
       // 2. If prefix is the same, sort by location order
       return aKeys.locationIndex - bKeys.locationIndex;
     });
-  }, [filteredReports, selectedYearMonth]);
+  }, [filteredReports, selectedYearMonth, selectedHospital, showHospitalSelector, prefixOrder]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -75,94 +96,101 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
 
   const handleYearMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       setSelectedYearMonth(e.target.value);
+      setSelectedHospital('');
       setSelectedBranch(''); // Reset branch on year/month change
   }
 
-  const isSubmitDisabled = !selectedYearMonth || !selectedBranch;
+  const handleHospitalChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedHospital(e.target.value);
+    setSelectedBranch('');
+  }
+
+  const isSubmitDisabled = !selectedYearMonth || (showHospitalSelector && !selectedHospital) || !selectedBranch;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg border border-gray-200 relative">
-        <button
-            onClick={onBack}
-            className="absolute top-4 left-4 text-gray-500 hover:text-gray-800 transition-colors"
-            aria-label="Back to category selection"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
-          <p className="text-gray-500 mt-1">조회할 항목의 연월과 지점을 선택해주세요.</p>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="yearMonth" className="block text-sm font-medium text-gray-700 mb-2">
-              연월
-            </label>
-            <select
-              id="yearMonth"
-              name="yearMonth"
-              value={selectedYearMonth}
-              onChange={handleYearMonthChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
-            >
-              <option value="" disabled>연월 선택</option>
-              {yearMonths.map(ym => (
-                <option key={ym} value={ym}>{ym}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="yearMonth" className="block text-sm font-medium text-gray-700 mb-2">
-              병원명
-            </label>
-            <select
-              id="branch"
-              name="branch"
-              value={selectedBranch}
-              onChange={handleYearMonthChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
-            >
-              <option value="" disabled>병원 선택</option>
-              {yearMonths.map(ym => (
-                <option key={ym} value={ym}>{ym}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div>
-            <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-2">
-              지점명
-            </label>
-            <select
-              id="branch"
-              name="branch"
-              value={selectedBranch}
-              onChange={(e) => setSelectedBranch(e.target.value)}
-              disabled={!selectedYearMonth}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow disabled:bg-gray-100"
-            >
-              <option value="" disabled>지점 선택</option>
-              {branches.map(b => (
-                <option key={b} value={b}>{b}</option>
-              ))}
-            </select>
-          </div>
-        
-          <div>
-            <button
-              type="submit"
-              disabled={isSubmitDisabled}
-              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
-            >
-              조회하기
-            </button>
-          </div>
-        </form>
+    <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg border border-gray-200 relative">
+      <button
+          onClick={onBack}
+          className="absolute top-4 left-4 text-gray-500 hover:text-gray-800 transition-colors p-2 rounded-full hover:bg-gray-100"
+          aria-label="Back to category selection"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
+        <p className="text-gray-500 mt-1">조회할 항목의 연월과 지점을 선택해주세요.</p>
       </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label htmlFor="yearMonth" className="block text-sm font-medium text-gray-700 mb-2">
+            연월
+          </label>
+          <select
+            id="yearMonth"
+            name="yearMonth"
+            value={selectedYearMonth}
+            onChange={handleYearMonthChange}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+          >
+            <option value="" disabled>연월 선택</option>
+            {yearMonths.map(ym => (
+              <option key={ym} value={ym}>{ym}</option>
+            ))}
+          </select>
+        </div>
+        
+        {showHospitalSelector && (
+            <div>
+                <label htmlFor="hospital" className="block text-sm font-medium text-gray-700 mb-2">
+                병원명
+                </label>
+                <select
+                id="hospital"
+                name="hospital"
+                value={selectedHospital}
+                onChange={handleHospitalChange}
+                disabled={!selectedYearMonth}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow disabled:bg-gray-100"
+                >
+                <option value="" disabled>병원 선택</option>
+                {hospitals.map(h => (
+                    <option key={h} value={h}>{h}</option>
+                ))}
+                </select>
+            </div>
+        )}
+
+        <div>
+          <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-2">
+            지점명
+          </label>
+          <select
+            id="branch"
+            name="branch"
+            value={selectedBranch}
+            onChange={(e) => setSelectedBranch(e.target.value)}
+            disabled={!selectedYearMonth || (showHospitalSelector && !selectedHospital)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow disabled:bg-gray-100"
+          >
+            <option value="" disabled>지점 선택</option>
+            {branches.map(b => (
+              <option key={b} value={b}>{b}</option>
+            ))}
+          </select>
+        </div>
+      
+        <div>
+          <button
+            type="submit"
+            disabled={isSubmitDisabled}
+            className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
+          >
+            조회하기
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
