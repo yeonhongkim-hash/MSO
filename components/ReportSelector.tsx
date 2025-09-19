@@ -13,10 +13,6 @@ interface ReportSelectorProps {
 const hospitalPrefixes = ['리팅', '셀팅', '플란', '다이트'];
 
 const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCategory, onSelect, onBack }) => {
-  const [selectedYearMonth, setSelectedYearMonth] = useState('');
-  const [selectedHospital, setSelectedHospital] = useState('');
-  const [selectedBranch, setSelectedBranch] = useState('');
-
   const title = `${selectedCategory} 조회`;
 
   const filteredReports = useMemo(() => {
@@ -28,6 +24,22 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
     // Sort descending (e.g., 2507, 2506, ...)
     return Array.from(uniqueYearMonths).sort().reverse();
   }, [filteredReports]);
+
+  const getInitialYearMonth = () => {
+    const now = new Date();
+    const year = now.getFullYear().toString().slice(-2);
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const currentYearMonth = `${year}${month}`;
+    
+    if (yearMonths.includes(currentYearMonth)) {
+      return currentYearMonth;
+    }
+    return '';
+  };
+  
+  const [selectedYearMonth, setSelectedYearMonth] = useState(getInitialYearMonth);
+  const [selectedHospital, setSelectedHospital] = useState('');
+  const [selectedBranch, setSelectedBranch] = useState('');
 
   const availableHospitals = useMemo(() => {
     if (!selectedYearMonth) return [];
