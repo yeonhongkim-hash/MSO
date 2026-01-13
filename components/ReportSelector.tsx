@@ -67,11 +67,28 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
         return matchYear && matchWeek;
     });
 
-    // Case A: 주차별 보고서 -> Branch 컬럼 자체가 병원명(브랜드)임 (예: 리팅/셀팅, 다이트)
+    // Case A: 주차별 보고서 -> Branch 컬럼 자체가 병원명(브랜드)임
+    // 정렬 순서: 리팅/셀팅 -> 플란 -> 다이트
     if (isWeeklyReport) {
         const uniqueBrands = new Set(relevantReports.map(r => r.branch));
-        // 가나다순 혹은 원하는 순서대로 정렬
-        return Array.from(uniqueBrands).sort(); 
+        const sortOrder = ['리팅/셀팅', '플란', '다이트'];
+
+        return Array.from(uniqueBrands).sort((a, b) => {
+            const indexA = sortOrder.indexOf(a);
+            const indexB = sortOrder.indexOf(b);
+
+            // 둘 다 지정된 순서 목록에 있는 경우: 인덱스 비교
+            if (indexA !== -1 && indexB !== -1) {
+                return indexA - indexB;
+            }
+            
+            // 지정된 목록에 있는 항목을 우선순위로 올림
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+
+            // 목록에 없는 새로운 브랜드가 있다면 그 뒤로 가나다순 정렬
+            return a.localeCompare(b);
+        }); 
     }
 
     // Case B: 일반 보고서 -> Branch 컬럼에서 접두사 추출 (예: 리팅서울 -> 리팅)
