@@ -34,7 +34,7 @@ const parseCsvToReports = (csvText: string): Report[] => {
 
         // The structure: Category (0), YearMonth (1), Week (2), Branch (3), URL (4)
         if (columns.length >= 5) {
-            const category = columns[0].trim() as '보고서' | '추가자료' | '주차별 보고서';
+            const category = columns[0].trim() as '보고서' | '추가자료' | '주차별보고서';
             const yearMonth = columns[1].trim();
             const week = columns[2].trim();
             const branch = columns[3].trim(); // 병원명(브랜드) 또는 병원명&지점명
@@ -42,7 +42,7 @@ const parseCsvToReports = (csvText: string): Report[] => {
             
             // 1. '주차별 보고서'인 경우: Week, Branch, URL 모두 필수
             // Branch에는 '리팅/셀팅', '다이트', '플란' 등이 들어옵니다.
-            if (category === '주차별 보고서') {
+            if (category === '주차별보고서') {
                 if (yearMonth && week && branch && url) {
                     reports.push({ 
                         category, 
