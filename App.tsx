@@ -6,7 +6,7 @@ import CategorySelector from './components/CategorySelector';
 import { verifyPassword, getReportData } from './services/googleSheetService';
 import type { Report } from './types';
 
-type Category = '보고서' | '추가자료';
+type Category = '보고서' | '추가자료'| '주차별 보고서';
 
 const App: React.FC = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
