@@ -25,22 +25,46 @@ const parseCsvToReports = (csvText: string): Report[] => {
     const reports: Report[] = [];
     const rows = csvText.trim().split('\n');
 
-    // Start from 1 to skip the header row ('Category', 'YearMonth', 'Branch', 'URL')
+    // Start from 1 to skip the header row ('Category', 'YearMonth', 'Week', 'Branch', 'URL')
     for (let i = 1; i < rows.length; i++) {
         const row = rows[i].trim();
         if (!row) continue; // Skip empty rows
 
-        // A simple CSV parser assuming no commas within fields.
         const columns = row.split(',');
 
-        if (columns.length >= 4) {
-            const category = columns[0].trim() as '보고서' | '추가자료';
+        // The structure: Category (0), YearMonth (1), Week (2), Branch (3), URL (4)
+        if (columns.length >= 5) {
+            const category = columns[0].trim() as '보고서' | '추가자료' | '주차별 보고서';
             const yearMonth = columns[1].trim();
-            const branch = columns[2].trim();
-            const url = columns[3].trim();
+            const week = columns[2].trim();
+            const branch = columns[3].trim(); // 병원명(브랜드) 또는 병원명&지점명
+            const url = columns[4].trim();
             
-            if ((category === '보고서' || category === '추가자료') && yearMonth && branch && url) {
-                 reports.push({ category, yearMonth, branch, url });
+            // 1. '주차별 보고서'인 경우: Week, Branch, URL 모두 필수
+            // Branch에는 '리팅/셀팅', '다이트', '플란' 등이 들어옵니다.
+            if (category === '주차별 보고서') {
+                if (yearMonth && week && branch && url) {
+                    reports.push({ 
+                        category, 
+                        yearMonth, 
+                        week, 
+                        branch, 
+                        url 
+                    });
+                }
+            } 
+            // 2. '보고서' 또는 '추가자료'인 경우: Branch, URL 필수 (Week는 무시)
+            // Branch에는 '병원명&지점명'이 들어옵니다.
+            else if ((category === '보고서' || category === '추가자료')) {
+                if (yearMonth && branch && url) {
+                    reports.push({ 
+                        category, 
+                        yearMonth, 
+                        branch, 
+                        week: '', // 일반 보고서는 주차 정보가 없으므로 빈 문자열
+                        url 
+                    });
+                }
             }
         }
     }
