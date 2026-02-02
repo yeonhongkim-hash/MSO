@@ -15,18 +15,22 @@ const Login: React.FC<LoginProps> = ({ onLogin, isLoading, error }) => {
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [userEmail, setUserEmail] = useState('');
 
-  // 여기에 허용할 도메인을 입력하세요 (예: gmail.com 또는 회사도메인.com)
+  // ⚠️ 허용할 도메인을 설정하세요. (예: gmail.com 또는 회사도메인.com)
   const ALLOWED_DOMAIN = "gmail.com"; 
 
   const handleGoogleSuccess = (credentialResponse: any) => {
-    const decoded: any = jwtDecode(credentialResponse.credential);
-    const email = decoded.email;
+    try {
+      const decoded: any = jwtDecode(credentialResponse.credential);
+      const email = decoded.email;
 
-    if (email.endsWith(`@${ALLOWED_DOMAIN}`)) {
-      setUserEmail(email);
-      setIsEmailVerified(true);
-    } else {
-      alert(`접근 권한이 없습니다. ${ALLOWED_DOMAIN} 계정으로 로그인해주세요.`);
+      if (email.endsWith(`@${ALLOWED_DOMAIN}`)) {
+        setUserEmail(email);
+        setIsEmailVerified(true);
+      } else {
+        alert(`접근 권한이 없습니다. @${ALLOWED_DOMAIN} 계정으로 로그인해주세요.`);
+      }
+    } catch (err) {
+      alert("로그인 처리 중 오류가 발생했습니다.");
     }
   };
 
@@ -64,7 +68,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, isLoading, error }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-              placeholder="최종 비밀번호 입력"
+              placeholder="비밀번호 입력"
               autoFocus
             />
             <button
