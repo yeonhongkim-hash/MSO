@@ -16,24 +16,32 @@ const Login: React.FC<LoginProps> = ({ onLogin, isLoading, error }) => {
   const [userEmail, setUserEmail] = useState('');
 
   // 허용할 도메인을 설정하세요. (예: gmail.com 또는 회사도메인.com)
-  const ALLOWED_DOMAIN = ["gmail.com", "metaht.kr"]; 
+  // Login.tsx 내부
 
-  const handleGoogleSuccess = (credentialResponse: any) => {
-    try {
-      const decoded: any = jwtDecode(credentialResponse.credential);
-      const email = decoded.email;
+// 1. 도메인 목록을 정확한 배열 형태로 작성 (공백 주의)
+const ALLOWED_DOMAINS = ["gmail.com", "metaht.kr"]; 
 
-      if (email.endsWith(`@${ALLOWED_DOMAIN}`)) {
-        setUserEmail(email);
-        setIsEmailVerified(true);
-      } else {
-        alert(`접근 권한이 없습니다. {ALLOWED_DOMAIN} 계정으로 로그인해주세요.`);
-      }
-    } catch (err) {
-      alert("로그인 처리 중 오류가 발생했습니다.");
+const handleGoogleSuccess = (credentialResponse: any) => {
+  try {
+    const decoded: any = jwtDecode(credentialResponse.credential);
+    const email = decoded.email.toLowerCase(); // 소문자로 변환하여 비교 (보안상 권장)
+
+    // 2. some 함수를 사용하여 정확히 끝자리가 일치하는지 확인
+    const isAllowed = ALLOWED_DOMAINS.some(domain => 
+      email.endsWith(`@${domain.trim()}`)
+    );
+
+    if (isAllowed) {
+      setUserEmail(email);
+      setIsEmailVerified(true); // 성공 시 비밀번호 창이 나타남
+    } else {
+      // 실패 시 알림창에 현재 로그인 시도한 이메일을 표시해서 디버깅하기 쉽게 수정
+      alert(`접근 권한이 없습니다.\n현재 계정: ${email}\n허용 도메인: ${ALLOWED_DOMAINS.join(", ")}`);
     }
-  };
-
+  } catch (err) {
+    alert("로그인 정보 해석 중 오류가 발생했습니다.");
+  }
+};
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onLogin(password);
