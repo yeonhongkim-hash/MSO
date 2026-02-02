@@ -15,7 +15,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, isLoading, error }) => {
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [userEmail, setUserEmail] = useState('');
 
-  // ⚠️ 허용할 도메인을 설정하세요. (예: gmail.com 또는 회사도메인.com)
+  // 허용할 도메인을 설정하세요. (예: gmail.com 또는 회사도메인.com)
   const ALLOWED_DOMAIN = "gmail.com"; 
 
   const handleGoogleSuccess = (credentialResponse: any) => {
@@ -88,3 +88,6 @@ const Login: React.FC<LoginProps> = ({ onLogin, isLoading, error }) => {
 };
 
 export default Login;
+
+
+
