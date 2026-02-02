@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import App from './App';
-import './index.css';
+// import './index.css';
 
 
 const clientId = "523244558957-a3469jjv8fek582ie6ats7vllbhs51rn.apps.googleusercontent.com";
