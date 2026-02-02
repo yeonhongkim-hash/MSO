@@ -27,7 +27,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, isLoading, error }) => {
         setUserEmail(email);
         setIsEmailVerified(true);
       } else {
-        alert(`접근 권한이 없습니다. @${ALLOWED_DOMAIN} 계정으로 로그인해주세요.`);
+        alert(`접근 권한이 없습니다. {ALLOWED_DOMAIN} 계정으로 로그인해주세요.`);
       }
     } catch (err) {
       alert("로그인 처리 중 오류가 발생했습니다.");
