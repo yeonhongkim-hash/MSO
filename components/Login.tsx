@@ -19,7 +19,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, isLoading, error }) => {
   // Login.tsx 내부
 
 // 1. 도메인 목록을 정확한 배열 형태로 작성 (공백 주의)
-const ALLOWED_DOMAINS = ["gmail.com", "metaht.kr"]; 
+const ALLOWED_DOMAINS = ["metaht.kr"]; 
 
 const handleGoogleSuccess = (credentialResponse: any) => {
   try {
