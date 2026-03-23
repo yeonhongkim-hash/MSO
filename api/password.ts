@@ -24,8 +24,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const password = response.data.values?.[0]?.[0] || '';
     res.status(200).json({ password });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch password' });
+  } catch (error: any) {
+  console.error('FULL ERROR:', error);
+  res.status(500).json({ error: error.message || String(error) });
   }
 }
