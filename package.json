@@ -9,7 +9,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "@react-oauth/google": "latest",
-    "jwt-decode": "latest"
+    "jwt-decode": "latest",
+    "googleapis": "^130.0.0"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
