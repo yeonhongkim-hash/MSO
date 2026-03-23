@@ -1,4 +1,8 @@
-import { google } from 'googleapis';
+export const config = {
+  runtime: 'nodejs'
+};
+
+const { google } = require('googleapis');
 
 export default async function handler(req, res) {
   try {
@@ -14,7 +18,7 @@ export default async function handler(req, res) {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: '19OrJtUPeDOH8jUnWvKTz-dwCmIyH9ub_yJnZYZXZHTI',
-      range: 'Sheet1!A:E', //
+      range: 'Sheet1!A:E',
     });
 
     const rows = response.data.values || [];
