@@ -11,13 +11,13 @@ const auth = new google.auth.GoogleAuth({
 
 const sheets = google.sheets({ version: 'v4', auth });
 
-const SPREADSHEET_ID = '1COirsAewwpVeSrhcUAHLGUiZA_A8g9qk7y0NcvfyfKo';
+const SPREADSHEET_ID = '19OrJtUPeDOH8jUnWvKTz-dwCmIyH9ub_yJnZYZXZHTI';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
-      range: 'Secret!A1',
+      range: 'PasswordSheet!A1',
     });
 
     const password = response.data.values?.[0]?.[0] || '';
