@@ -1,4 +1,8 @@
-import { google } from 'googleapis';
+export const config = {
+  runtime: 'nodejs'
+};
+
+const { google } = require('googleapis');
 
 export default async function handler(req, res) {
   try {
