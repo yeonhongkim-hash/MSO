@@ -29,3 +29,8 @@ export default async function handler(req, res) {
     res.status(500).json({ error: error.message });
   }
 }
+
+console.log('ENV CHECK:', {
+  email: process.env.GOOGLE_CLIENT_EMAIL,
+  keyExists: !!process.env.GOOGLE_PRIVATE_KEY,
+});
