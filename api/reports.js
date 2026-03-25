@@ -20,11 +20,10 @@ export default async function handler(req, res) {
       range: 'Sheet1!A:E', 
     });
 
-    const rows = response.data.values?.[0]?.[0] || '';
+    const rows = response.data.values || [];
 
-    // 2차원 배열 형태로 응답 (프론트엔드의 parseRowsToReports 함수가 이 배열을 처리함)
     res.status(200).json({ rows });
-
+    
 
   } catch (error) {
     console.error('FULL ERROR:', error);
