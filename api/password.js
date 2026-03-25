@@ -9,8 +9,8 @@ export default async function handler(req, res) {
     const auth = new google.auth.JWT({
       email: process.env.GOOGLE_CLIENT_EMAIL,
       key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-      subject: 'yeonhong.kim@metaht.kr', 
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+      subject: 'data@metaht.kr', 
     });
 
     const sheets = google.sheets({ version: 'v4', auth });
