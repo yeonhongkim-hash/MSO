@@ -20,11 +20,12 @@ export default async function handler(req, res) {
       range: 'Sheet1!A:E', 
     });
 
-    // 해당 셀의 텍스트 값을 추출
-    const password = response.data.values?.[0]?.[0] || '';
+    const rows = response.data.values?.[0]?.[0] || '';
 
-    // 프론트엔드가 기대하는 { password: '...' } 형태로 응답
+    // 2차원 배열 형태로 응답 (프론트엔드의 parseRowsToReports 함수가 이 배열을 처리함)
     res.status(200).json({ rows });
+
+
   } catch (error) {
     console.error('FULL ERROR:', error);
     res.status(500).json({ error: error.message });
