@@ -15,9 +15,6 @@ const Login: React.FC<LoginProps> = ({ onLogin, isLoading, error }) => {
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [userEmail, setUserEmail] = useState('');
 
-  // 허용할 도메인을 설정하세요. (예: gmail.com 또는 회사도메인.com)
-  // Login.tsx 내부
-
 // 1. 도메인 목록을 정확한 배열 형태로 작성 (공백 주의)
 const ALLOWED_DOMAINS = ["metaht.kr"]; 
 
@@ -55,7 +52,7 @@ const handleGoogleSuccess = (credentialResponse: any) => {
           {isEmailVerified ? (
             <span className="text-blue-600 font-medium">{userEmail} 인증됨</span>
           ) : (
-            "구글 도메인 인증이 필요합니다."
+            "metaht.kr 도메인 인증이 필요합니다."
           )}
         </p>
       </div>
@@ -65,7 +62,7 @@ const handleGoogleSuccess = (credentialResponse: any) => {
           <div className="flex justify-center">
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
-              onError={() => alert('구글 로그인에 실패했습니다.')}
+              onError={() => alert('도메인 인증에 실패했습니다.')}
               useOneTap
             />
           </div>
