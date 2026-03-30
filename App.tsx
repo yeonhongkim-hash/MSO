@@ -6,7 +6,8 @@ import CategorySelector from './components/CategorySelector';
 import { verifyPassword, getReportData } from './services/googleSheetService';
 import type { Report } from './types';
 
-type Category = '보고서' | '추가자료'| '주차별 보고서';
+// 1. 카테고리 타입에 '월마감예측' 추가 
+type Category = '보고서' | '추가자료' | '주차별보고서' | '월마감예측';
 
 const App: React.FC = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -52,8 +53,17 @@ const App: React.FC = () => {
         setSelectedUrl(url);
     };
 
-    const handleBackToReportSelector = () => {
-        setSelectedUrl(null);
+    // 2. 뷰어에서 뒤로가기 버튼 클릭 시 로직 수정
+    const handleBackFromViewer = () => {
+        if (selectedCategory === '월마감예측') {
+            // 월마감예측은 중간 옵션 선택(ReportSelector)이 없으므로, 
+            // URL과 카테고리를 모두 날려 최상위 '카테고리 선택' 화면으로 직행합니다.
+            setSelectedUrl(null);
+            setSelectedCategory(null);
+        } else {
+            // 다른 보고서들은 옵션 선택 화면(ReportSelector)으로 돌아갑니다.
+            setSelectedUrl(null);
+        }
     };
 
     const handleBackToCategorySelector = () => {
@@ -61,7 +71,8 @@ const App: React.FC = () => {
     }
 
     if (selectedUrl) {
-        return <SpreadsheetViewer url={selectedUrl} onBack={handleBackToReportSelector} />;
+        // 3. 수정된 핸들러(handleBackFromViewer)를 뷰어의 onBack에 연결
+        return <SpreadsheetViewer url={selectedUrl} onBack={handleBackFromViewer} />;
     }
 
     if (isAuthenticated) {
