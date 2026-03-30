@@ -49,8 +49,8 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ onSelect }) => {
             className="w-full text-left p-6 border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="월마감예측 조회하기"
           >
-            <h2 className="text-lg font-semibold text-gray-800">월마감예측</h2>
-            <p className="text-gray-600 mt-1">이번 달 마감 예측 데이터를 조회합니다.</p>
+            <h2 className="text-lg font-semibold text-gray-800">(MHG) 전병원 월마감예측</h2>
+            <p className="text-gray-600 mt-1">당월 전병원 마감 매출(E)을 조회합니다.</p>
           </button>
         </div>
       </div>
