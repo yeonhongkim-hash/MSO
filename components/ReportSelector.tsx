@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { Report } from '../types';
 
-type Category = '보고서' | '추가자료' | '주차별보고서';
+// 1. 카테고리 타입에 '월마감예측' 추가
+type Category = '보고서' | '추가자료' | '주차별보고서' | '월마감예측';
 
 interface ReportSelectorProps {
   reports: Report[];
@@ -15,15 +16,15 @@ const hospitalPrefixes = ['리팅', '셀팅', '플란', '다이트'];
 const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCategory, onSelect, onBack }) => {
   const title = `${selectedCategory} 조회`;
   const isWeeklyReport = selectedCategory === '주차별보고서';
+  // 2. 월마감예측 여부 확인
+  const isMonthlyForecast = selectedCategory === '월마감예측';
 
-  // 1. 카테고리에 맞는 리포트 필터링
   const filteredReports = useMemo(() => {
     return reports.filter(r => r.category === selectedCategory);
   }, [reports, selectedCategory]);
 
-  // 2. 연월(YearMonth) 추출
   const yearMonths = useMemo(() => {
-    const uniqueYearMonths = new Set(filteredReports.map(r => r.yearMonth));
+    const uniqueYearMonths = new Set(filteredReports.map(r => r.yearMonth).filter(Boolean));
     return Array.from(uniqueYearMonths).sort().reverse();
   }, [filteredReports]);
 
@@ -40,25 +41,19 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
   };
   
   const [selectedYearMonth, setSelectedYearMonth] = useState(getInitialYearMonth);
-  const [selectedWeek, setSelectedWeek] = useState(''); // 주차별 보고서용 State
-  const [selectedHospital, setSelectedHospital] = useState(''); // 병원명 (주차별의 경우 브랜드명)
-  const [selectedBranch, setSelectedBranch] = useState(''); // 지점명 (일반 보고서용)
+  const [selectedWeek, setSelectedWeek] = useState('');
+  const [selectedHospital, setSelectedHospital] = useState('');
+  const [selectedBranch, setSelectedBranch] = useState('');
 
-  // 3. 주차(Week) 추출 (주차별 보고서인 경우에만 유효)
   const weeks = useMemo(() => {
     if (!isWeeklyReport || !selectedYearMonth) return [];
-    
     const relevantReports = filteredReports.filter(r => r.yearMonth === selectedYearMonth);
-    const uniqueWeeks = new Set(relevantReports.map(r => r.week).filter(Boolean)); // week가 있는 것만
-    // 문자열 정렬 (1주차, 2주차...)
+    const uniqueWeeks = new Set(relevantReports.map(r => r.week).filter(Boolean));
     return Array.from(uniqueWeeks).sort();
   }, [filteredReports, selectedYearMonth, isWeeklyReport]);
 
-  // 4. 병원명(Hospital) 추출
   const availableHospitals = useMemo(() => {
     if (!selectedYearMonth) return [];
-    
-    // 주차별 보고서라면 '주차'까지 선택되어야 병원 목록이 나옴
     if (isWeeklyReport && !selectedWeek) return [];
 
     const relevantReports = filteredReports.filter(r => {
@@ -67,8 +62,6 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
         return matchYear && matchWeek;
     });
 
-    // Case A: 주차별 보고서 -> Branch 컬럼 자체가 병원명(브랜드)임
-    // 정렬 순서: 리팅/셀팅 -> 플란 -> 다이트
     if (isWeeklyReport) {
         const uniqueBrands = new Set(relevantReports.map(r => r.branch));
         const sortOrder = ['리팅/셀팅', '플란', '다이트'];
@@ -76,22 +69,13 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
         return Array.from(uniqueBrands).sort((a, b) => {
             const indexA = sortOrder.indexOf(a);
             const indexB = sortOrder.indexOf(b);
-
-            // 둘 다 지정된 순서 목록에 있는 경우: 인덱스 비교
-            if (indexA !== -1 && indexB !== -1) {
-                return indexA - indexB;
-            }
-            
-            // 지정된 목록에 있는 항목을 우선순위로 올림
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
             if (indexA !== -1) return -1;
             if (indexB !== -1) return 1;
-
-            // 목록에 없는 새로운 브랜드가 있다면 그 뒤로 가나다순 정렬
             return a.localeCompare(b);
         }); 
     }
 
-    // Case B: 일반 보고서 -> Branch 컬럼에서 접두사 추출 (예: 리팅서울 -> 리팅)
     const availablePrefixes = new Set<string>();
     relevantReports.forEach(report => {
         const prefix = hospitalPrefixes.find(p => report.branch.startsWith(p));
@@ -103,9 +87,8 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
     return Array.from(availablePrefixes).sort((a, b) => hospitalPrefixes.indexOf(a) - hospitalPrefixes.indexOf(b));
   }, [filteredReports, selectedYearMonth, selectedWeek, isWeeklyReport]);
 
-  // 5. 지점명(Branch) 추출 (일반 보고서용)
   const branches = useMemo(() => {
-    if (isWeeklyReport) return []; // 주차별 보고서는 지점 선택 단계 없음
+    if (isWeeklyReport || isMonthlyForecast) return [];
     if (!selectedYearMonth || !selectedHospital) return [];
 
     const locationOrder = ['서울', '청담', '부평', '검단', '수원', '동탄', '일산', '부산', '대구', '창원'];
@@ -126,25 +109,23 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
       const bLocationIndex = getLocationIndex(b);
       return aLocationIndex - bLocationIndex;
     });
-  }, [filteredReports, selectedYearMonth, selectedHospital, isWeeklyReport]);
-
-  // --- Handlers ---
+  }, [filteredReports, selectedYearMonth, selectedHospital, isWeeklyReport, isMonthlyForecast]);
 
   const handleYearMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       setSelectedYearMonth(e.target.value);
-      setSelectedWeek('');     // Reset Week
-      setSelectedHospital(''); // Reset Hospital
-      setSelectedBranch('');   // Reset Branch
+      setSelectedWeek('');     
+      setSelectedHospital(''); 
+      setSelectedBranch('');   
   }
 
   const handleWeekChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       setSelectedWeek(e.target.value);
-      setSelectedHospital(''); // Reset Hospital when week changes
+      setSelectedHospital(''); 
   }
 
   const handleHospitalChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       setSelectedHospital(e.target.value);
-      setSelectedBranch(''); // Reset branch on hospital change
+      setSelectedBranch(''); 
   }
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -152,29 +133,32 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
     
     let report: Report | undefined;
 
-    if (isWeeklyReport) {
-        // 주차별 보고서: 연월 + 주차 + 병원명(branch컬럼값) 매칭
+    // 3. 월마감예측인 경우 옵션 매칭 없이 바로 첫 번째 데이터를 사용
+    if (isMonthlyForecast) {
+        report = filteredReports[0];
+    } else if (isWeeklyReport) {
         report = filteredReports.find(
             r => r.yearMonth === selectedYearMonth && 
                  r.week === selectedWeek && 
-                 r.branch === selectedHospital // 주차별은 selectedHospital이 곧 branch 값
+                 r.branch === selectedHospital 
         );
     } else {
-        // 일반 보고서: 연월 + 상세지점명 매칭
         report = filteredReports.find(
             r => r.yearMonth === selectedYearMonth && r.branch === selectedBranch
         );
     }
 
-    if (report) {
+    if (report && report.url) {
       onSelect(report.url);
     }
   };
 
-  // 버튼 비활성화 조건
-  const isSubmitDisabled = isWeeklyReport
-    ? !selectedYearMonth || !selectedWeek || !selectedHospital
-    : !selectedYearMonth || !selectedHospital || !selectedBranch;
+  // 4. 월마감예측일 때는 버튼 활성화 조건 변경 (데이터가 존재하기만 하면 활성화)
+  const isSubmitDisabled = isMonthlyForecast
+    ? filteredReports.length === 0
+    : isWeeklyReport
+      ? !selectedYearMonth || !selectedWeek || !selectedHospital
+      : !selectedYearMonth || !selectedHospital || !selectedBranch;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -191,96 +175,60 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
           <p className="text-gray-500 mt-1">
-            {isWeeklyReport 
-                ? '조회할 연월, 주차, 병원명을 선택해주세요.' 
-                : '조회할 항목의 연월, 병원명, 지점을 선택해주세요.'}
+            {isMonthlyForecast
+                ? '아래 버튼을 눌러 월마감예측 자료를 조회하세요.'
+                : isWeeklyReport 
+                    ? '조회할 연월, 주차, 병원명을 선택해주세요.' 
+                    : '조회할 항목의 연월, 병원명, 지점을 선택해주세요.'}
           </p>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* 1. 연월 선택 */}
-          <div>
-            <label htmlFor="yearMonth" className="block text-sm font-medium text-gray-700 mb-2">
-              연월
-            </label>
-            <select
-              id="yearMonth"
-              name="yearMonth"
-              value={selectedYearMonth}
-              onChange={handleYearMonthChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
-            >
-              <option value="" disabled>연월 선택</option>
-              {yearMonths.map(ym => (
-                <option key={ym} value={ym}>{ym}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* 2. 주차 선택 (주차별 보고서인 경우에만 표시) */}
-          {isWeeklyReport && (
-              <div>
-                <label htmlFor="week" className="block text-sm font-medium text-gray-700 mb-2">
-                  주차
-                </label>
-                <select
-                  id="week"
-                  name="week"
-                  value={selectedWeek}
-                  onChange={handleWeekChange}
-                  disabled={!selectedYearMonth}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow disabled:bg-gray-100"
-                >
-                  <option value="" disabled>주차 선택</option>
-                  {weeks.map(w => (
-                    <option key={w} value={w}>{w}</option>
-                  ))}
-                </select>
-              </div>
-          )}
-
-          {/* 3. 병원 선택 */}
-          <div>
-            <label htmlFor="hospital" className="block text-sm font-medium text-gray-700 mb-2">
-              병원명
-            </label>
-            <select
-              id="hospital"
-              name="hospital"
-              value={selectedHospital}
-              onChange={handleHospitalChange}
-              // 주차별이면 week가 선택되어야 활성, 일반이면 yearMonth만 있으면 활성
-              disabled={isWeeklyReport ? !selectedWeek : !selectedYearMonth}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow disabled:bg-gray-100"
-            >
-              <option value="" disabled>병원 선택</option>
-              {availableHospitals.map(h => (
-                <option key={h} value={h}>{h}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* 4. 지점 선택 (일반 보고서인 경우에만 표시) */}
-          {!isWeeklyReport && (
-              <div>
-                <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-2">
-                  지점명
-                </label>
-                <select
-                  id="branch"
-                  name="branch"
-                  value={selectedBranch}
-                  onChange={(e) => setSelectedBranch(e.target.value)}
-                  disabled={!selectedHospital}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow disabled:bg-gray-100"
-                >
-                  <option value="" disabled>지점 선택</option>
-                  {branches.map(b => (
-                    <option key={b} value={b}>{b.replace(selectedHospital, '')}</option>
-                  ))}
-                </select>
-              </div>
-          )}
         
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* 5. 월마감예측이 아닐 때만 셀렉트 박스들을 렌더링 */}
+          {!isMonthlyForecast && (
+            <>
+              {/* 1. 연월 선택 */}
+              <div>
+                <label htmlFor="yearMonth" className="block text-sm font-medium text-gray-700 mb-2">연월</label>
+                <select id="yearMonth" name="yearMonth" value={selectedYearMonth} onChange={handleYearMonthChange} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
+                  <option value="" disabled>연월 선택</option>
+                  {yearMonths.map(ym => <option key={ym} value={ym}>{ym}</option>)}
+                </select>
+              </div>
+
+              {/* 2. 주차 선택 */}
+              {isWeeklyReport && (
+                  <div>
+                    <label htmlFor="week" className="block text-sm font-medium text-gray-700 mb-2">주차</label>
+                    <select id="week" name="week" value={selectedWeek} onChange={handleWeekChange} disabled={!selectedYearMonth} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow disabled:bg-gray-100">
+                      <option value="" disabled>주차 선택</option>
+                      {weeks.map(w => <option key={w} value={w}>{w}</option>)}
+                    </select>
+                  </div>
+              )}
+
+              {/* 3. 병원 선택 */}
+              <div>
+                <label htmlFor="hospital" className="block text-sm font-medium text-gray-700 mb-2">병원명</label>
+                <select id="hospital" name="hospital" value={selectedHospital} onChange={handleHospitalChange} disabled={isWeeklyReport ? !selectedWeek : !selectedYearMonth} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow disabled:bg-gray-100">
+                  <option value="" disabled>병원 선택</option>
+                  {availableHospitals.map(h => <option key={h} value={h}>{h}</option>)}
+                </select>
+              </div>
+
+              {/* 4. 지점 선택 */}
+              {!isWeeklyReport && (
+                  <div>
+                    <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-2">지점명</label>
+                    <select id="branch" name="branch" value={selectedBranch} onChange={(e) => setSelectedBranch(e.target.value)} disabled={!selectedHospital} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow disabled:bg-gray-100">
+                      <option value="" disabled>지점 선택</option>
+                      {branches.map(b => <option key={b} value={b}>{b.replace(selectedHospital, '')}</option>)}
+                    </select>
+                  </div>
+              )}
+            </>
+          )}
+          
           <div>
             <button
               type="submit"
