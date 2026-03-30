@@ -1,6 +1,7 @@
 import React from 'react';
 
-type Category = '보고서' | '추가자료' | '주차별보고서';
+// 1. 카테고리 타입에 '월마감예측' 추가
+type Category = '보고서' | '추가자료' | '주차별보고서' | '월마감예측';
 
 interface CategorySelectorProps {
   onSelect: (category: Category) => void;
@@ -23,6 +24,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ onSelect }) => {
             <h2 className="text-lg font-semibold text-gray-800">MSO 보고서</h2>
             <p className="text-gray-600 mt-1">월별, 지점별 MSO 보고서를 조회합니다.</p>
           </button>
+          
           <button
             onClick={() => onSelect('추가자료')}
             className="w-full text-left p-6 border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -31,6 +33,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ onSelect }) => {
             <h2 className="text-lg font-semibold text-gray-800">MSO 보고서_세부자료</h2>
             <p className="text-gray-600 mt-1">MSO 보고서의 세부 분석 자료를 조회합니다.</p>
           </button>
+          
           <button
             onClick={() => onSelect('주차별보고서')}
             className="w-full text-left p-6 border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -38,6 +41,16 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ onSelect }) => {
           >
             <h2 className="text-lg font-semibold text-gray-800">주차별 인사이트 보고서</h2>
             <p className="text-gray-600 mt-1">주차별 인사이트 자료를 조회합니다.</p>
+          </button>
+
+          {/* 2. 월마감예측 버튼 추가 */}
+          <button
+            onClick={() => onSelect('월마감예측')}
+            className="w-full text-left p-6 border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="월마감예측 조회하기"
+          >
+            <h2 className="text-lg font-semibold text-gray-800">월마감예측</h2>
+            <p className="text-gray-600 mt-1">이번 달 마감 예측 데이터를 조회합니다.</p>
           </button>
         </div>
       </div>
