@@ -1,7 +1,7 @@
 import React from 'react';
 
 // 1. 카테고리 타입에 '월마감예측' 추가
-type Category = '보고서' | '추가자료' | '주차별보고서' | '월마감예측';
+type Category = '보고서' | '추가자료' | '차수별보고서' | '월마감예측';
 
 interface CategorySelectorProps {
   onSelect: (category: Category) => void;
@@ -35,9 +35,9 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ onSelect }) => {
           </button>
           
           <button
-            onClick={() => onSelect('주차별보고서')}
+            onClick={() => onSelect('차수별보고서')}
             className="w-full text-left p-6 border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="주차별 보고서 조회하기"
+            aria-label="차수별 보고서 조회하기"
           >
             <h2 className="text-lg font-semibold text-gray-800">주차별 인사이트 보고서</h2>
             <p className="text-gray-600 mt-1">주차별 인사이트 자료를 조회합니다.</p>
