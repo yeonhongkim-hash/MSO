@@ -14,7 +14,7 @@ const hospitalPrefixes = ['리팅', '셀팅', '플란', '다이트'];
 
 const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCategory, onSelect, onBack }) => {
   const title = `${selectedCategory} 조회`;
-  const isWeeklyReport = selectedCategory === '차수별보고서';
+  const isRoundReport = selectedCategory === '차수별보고서';
   const isMonthlyForecast = selectedCategory === '월마감예측';
 
   const filteredReports = useMemo(() => {
@@ -49,28 +49,28 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
   };
   
   const [selectedYearMonth, setSelectedYearMonth] = useState(getInitialYearMonth);
-  const [selectedWeek, setSelectedWeek] = useState('');
+  const [selectedRound, setSelectedRound] = useState('');
   const [selectedHospital, setSelectedHospital] = useState('');
   const [selectedBranch, setSelectedBranch] = useState('');
 
-  const weeks = useMemo(() => {
-    if (!isWeeklyReport || !selectedYearMonth) return [];
+  const rounds = useMemo(() => {
+    if (!isRoundReport || !selectedYearMonth) return [];
     const relevantReports = filteredReports.filter(r => r.yearMonth === selectedYearMonth);
-    const uniqueWeeks = new Set(relevantReports.map(r => r.round).filter(Boolean));
-    return Array.from(uniqueWeeks).sort();
-  }, [filteredReports, selectedYearMonth, isWeeklyReport]);
+    const uniqueRounds = new Set(relevantReports.map(r => r.round).filter(Boolean));
+    return Array.from(uniqueRounds).sort();
+  }, [filteredReports, selectedYearMonth, isRoundReport]);
 
   const availableHospitals = useMemo(() => {
     if (!selectedYearMonth) return [];
-    if (isWeeklyReport && !selectedWeek) return [];
+    if (isRoundReport && !selectedRound) return [];
 
     const relevantReports = filteredReports.filter(r => {
         const matchYear = r.yearMonth === selectedYearMonth;
-        const matchWeek = isWeeklyReport ? r.round === selectedWeek : true;
-        return matchYear && matchWeek;
+        const matchRound = isRoundReport ? r.round === selectedRound : true;
+        return matchYear && matchRound;
     });
 
-    if (isWeeklyReport) {
+    if (isRoundReport) {
         const uniqueBrands = new Set(relevantReports.map(r => r.branch));
         const sortOrder = ['리팅/셀팅', '플란', '다이트'];
 
@@ -93,10 +93,10 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
     });
 
     return Array.from(availablePrefixes).sort((a, b) => hospitalPrefixes.indexOf(a) - hospitalPrefixes.indexOf(b));
-  }, [filteredReports, selectedYearMonth, selectedWeek, isWeeklyReport]);
+  }, [filteredReports, selectedYearMonth, selectedRound, isRoundReport]);
 
   const branches = useMemo(() => {
-    if (isWeeklyReport) return [];
+    if (isRoundReport) return [];
     if (!selectedYearMonth || !selectedHospital) return [];
 
     const locationOrder = ['서울', '청담', '부평', '검단', '수원', '동탄', '일산', '부산', '대구', '창원'];
@@ -117,17 +117,17 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
       const bLocationIndex = getLocationIndex(b);
       return aLocationIndex - bLocationIndex;
     });
-  }, [filteredReports, selectedYearMonth, selectedHospital, isWeeklyReport]);
+  }, [filteredReports, selectedYearMonth, selectedHospital, isRoundReport]);
 
   const handleYearMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       setSelectedYearMonth(e.target.value);
-      setSelectedWeek('');     
+      setSelectedRound('');     
       setSelectedHospital(''); 
       setSelectedBranch('');   
   }
 
-  const handleWeekChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-      setSelectedWeek(e.target.value);
+  const handleRoundChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setSelectedRound(e.target.value);
       setSelectedHospital(''); 
   }
 
@@ -141,10 +141,10 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
     
     let report: Report | undefined;
 
-    if (isWeeklyReport) {
+    if (isRoundReport) {
         report = filteredReports.find(
             r => r.yearMonth === selectedYearMonth && 
-                 r.round === selectedWeek && 
+                 r.round === selectedRound && 
                  r.branch === selectedHospital 
         );
     } else {
@@ -158,8 +158,8 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
     }
   };
 
-  const isSubmitDisabled = isWeeklyReport
-    ? !selectedYearMonth || !selectedWeek || !selectedHospital
+  const isSubmitDisabled = isRoundReport
+    ? !selectedYearMonth || !selectedRound || !selectedHospital
     : !selectedYearMonth || !selectedHospital || !selectedBranch;
 
   // 🔥 2. 월마감예측인 경우 폼 화면 대신 빈 화면(혹은 로딩 화면)을 표시하여 깜빡임 방지
@@ -187,7 +187,7 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
           <p className="text-gray-500 mt-1">
-            {isWeeklyReport 
+            {isRoundReport 
                 ? '조회할 연월, 차수, 병원명을 선택해주세요.' 
                 : '조회할 항목의 연월, 병원명, 지점을 선택해주세요.'}
           </p>
@@ -204,12 +204,12 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
           </div>
 
           {/* 2. 차수 선택 */}
-          {isWeeklyReport && (
+          {isRoundReport && (
               <div>
                 <label htmlFor="round" className="block text-sm font-medium text-gray-700 mb-2">차수</label>
-                <select id="round" name="round" value={selectedWeek} onChange={handleWeekChange} disabled={!selectedYearMonth} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow disabled:bg-gray-100">
+                <select id="round" name="round" value={selectedRound} onChange={handleRoundChange} disabled={!selectedYearMonth} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow disabled:bg-gray-100">
                   <option value="" disabled>차수 선택</option>
-                  {weeks.map(w => <option key={w} value={w}>{w}</option>)}
+                  {rounds.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
           )}
@@ -217,14 +217,14 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
           {/* 3. 병원 선택 */}
           <div>
             <label htmlFor="hospital" className="block text-sm font-medium text-gray-700 mb-2">병원명</label>
-            <select id="hospital" name="hospital" value={selectedHospital} onChange={handleHospitalChange} disabled={isWeeklyReport ? !selectedWeek : !selectedYearMonth} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow disabled:bg-gray-100">
+            <select id="hospital" name="hospital" value={selectedHospital} onChange={handleHospitalChange} disabled={isRoundReport ? !selectedRound : !selectedYearMonth} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow disabled:bg-gray-100">
               <option value="" disabled>병원 선택</option>
               {availableHospitals.map(h => <option key={h} value={h}>{h}</option>)}
             </select>
           </div>
 
           {/* 4. 지점 선택 */}
-          {!isWeeklyReport && (
+          {!isRoundReport && (
               <div>
                 <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-2">지점명</label>
                 <select id="branch" name="branch" value={selectedBranch} onChange={(e) => setSelectedBranch(e.target.value)} disabled={!selectedHospital} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow disabled:bg-gray-100">

@@ -7,7 +7,7 @@ import { verifyPassword, getReportData } from './services/googleSheetService';
 import type { Report } from './types';
 
 // 1. 카테고리 타입에 '월마감예측' 추가 
-type Category = '보고서' | '추가자료' | '주차별보고서' | '월마감예측';
+type Category = '보고서' | '추가자료' | '차수별보고서' | '월마감예측';
 
 const App: React.FC = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);

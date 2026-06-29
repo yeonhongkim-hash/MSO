@@ -3,6 +3,16 @@ import type { Report } from '../types';
 // Cache
 let cachedReports: Report[] | null = null;
 
+type ReportCategory = Report['category'];
+
+const normalizeCategory = (raw: string): ReportCategory | null => {
+    if (raw === '주차별보고서') return '차수별보고서';
+    if (raw === '보고서' || raw === '추가자료' || raw === '차수별보고서' || raw === '월마감예측') {
+        return raw;
+    }
+    return null;
+};
+
 /**
  * 배열 데이터 → Report 변환
  */
@@ -17,7 +27,8 @@ const parseRowsToReports = (rows: string[][]): Report[] => {
 
         // '월마감예측'은 카테고리와 URL만 존재할 수 있으므로, 최소 2개 이상일 때부터 처리
         if (columns.length >= 2) {
-            const category = columns[0] as '보고서' | '추가자료' | '주차별보고서' | '월마감예측';
+            const category = normalizeCategory(columns[0]);
+            if (!category) continue;
 
             // 1. 월마감예측 처리: 카테고리와 URL만 존재
             if (category === '월마감예측') {
@@ -26,44 +37,44 @@ const parseRowsToReports = (rows: string[][]): Report[] => {
                 
                 if (url) {
                     // 나머지 필드는 빈 문자열로 안전하게 처리
-                    reports.push({ category, yearMonth: '', week: '', branch: '', url });
+                    reports.push({ category, yearMonth: '', round: '', branch: '', url });
                 }
                 continue; // 아래의 기존 로직은 건너뛰고 다음 행으로 이동
             }
 
-            // 2. 기존 보고서/추가자료/주차별보고서 처리: 최소 4개(카테고리, 연월, 지점, URL) 이상 필요
+            // 2. 기존 보고서/추가자료/차수별보고서 처리: 최소 4개(카테고리, 연월, 지점, URL) 이상 필요
             if (columns.length >= 4) {
                 const yearMonth = columns[1];
                 
-                let week = '';
+                let round = '';
                 let branch = '';
                 let url = '';
 
-                // 주차별보고서는 데이터가 5개(Week 포함)
-                // 일반 보고서/추가자료는 Week 열이 없어서 4개일 수 있음을 대비
-                if (category === '주차별보고서' && columns.length >= 5) {
-                    week = columns[2];
+                // 차수별보고서는 데이터가 5개(차수 포함)
+                // 일반 보고서/추가자료는 차수 열이 없어서 4개일 수 있음을 대비
+                if (category === '차수별보고서' && columns.length >= 5) {
+                    round = columns[2];
                     branch = columns[3];
                     url = columns[4];
                 } else if (columns.length === 4) {
-                    // Week 칸 자체가 생략되어 길이가 4인 경우 하나씩 당겨서 할당
+                    // 차수 칸 자체가 생략되어 길이가 4인 경우 하나씩 당겨서 할당
                     branch = columns[2];
                     url = columns[3];
                 } else {
-                    // Week 칸이 빈 문자열("")로 들어와서 길이가 5인 경우
-                    week = columns[2] || '';
+                    // 차수 칸이 빈 문자열("")로 들어와서 길이가 5인 경우
+                    round = columns[2] || '';
                     branch = columns[3];
                     url = columns[4];
                 }
 
                 // 조건에 맞게 객체 배열에 추가
-                if (category === '주차별보고서') {
+                if (category === '차수별보고서') {
                     if (yearMonth && branch && url) { 
-                        reports.push({ category, yearMonth, week, branch, url });
+                        reports.push({ category, yearMonth, round, branch, url });
                     }
                 } else {
                     if (yearMonth && branch && url) {
-                        reports.push({ category, yearMonth, branch, week: '', url });
+                        reports.push({ category, yearMonth, branch, round: '', url });
                     }
                 }
             }
