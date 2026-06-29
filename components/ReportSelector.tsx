@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { Report } from '../types';
 
-type Category = '보고서' | '추가자료' | '주차별보고서' | '월마감예측';
+type Category = '보고서' | '추가자료' | '차수별보고서' | '월마감예측';
 
 interface ReportSelectorProps {
   reports: Report[];
@@ -14,7 +14,7 @@ const hospitalPrefixes = ['리팅', '셀팅', '플란', '다이트'];
 
 const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCategory, onSelect, onBack }) => {
   const title = `${selectedCategory} 조회`;
-  const isWeeklyReport = selectedCategory === '주차별보고서';
+  const isWeeklyReport = selectedCategory === '차수별보고서';
   const isMonthlyForecast = selectedCategory === '월마감예측';
 
   const filteredReports = useMemo(() => {
@@ -56,7 +56,7 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
   const weeks = useMemo(() => {
     if (!isWeeklyReport || !selectedYearMonth) return [];
     const relevantReports = filteredReports.filter(r => r.yearMonth === selectedYearMonth);
-    const uniqueWeeks = new Set(relevantReports.map(r => r.week).filter(Boolean));
+    const uniqueWeeks = new Set(relevantReports.map(r => r.round).filter(Boolean));
     return Array.from(uniqueWeeks).sort();
   }, [filteredReports, selectedYearMonth, isWeeklyReport]);
 
@@ -66,7 +66,7 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
 
     const relevantReports = filteredReports.filter(r => {
         const matchYear = r.yearMonth === selectedYearMonth;
-        const matchWeek = isWeeklyReport ? r.week === selectedWeek : true;
+        const matchWeek = isWeeklyReport ? r.round === selectedWeek : true;
         return matchYear && matchWeek;
     });
 
@@ -144,7 +144,7 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
     if (isWeeklyReport) {
         report = filteredReports.find(
             r => r.yearMonth === selectedYearMonth && 
-                 r.week === selectedWeek && 
+                 r.round === selectedWeek && 
                  r.branch === selectedHospital 
         );
     } else {
@@ -188,7 +188,7 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
           <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
           <p className="text-gray-500 mt-1">
             {isWeeklyReport 
-                ? '조회할 연월, 주차, 병원명을 선택해주세요.' 
+                ? '조회할 연월, 차수, 병원명을 선택해주세요.' 
                 : '조회할 항목의 연월, 병원명, 지점을 선택해주세요.'}
           </p>
         </div>
@@ -203,12 +203,12 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
             </select>
           </div>
 
-          {/* 2. 주차 선택 */}
+          {/* 2. 차수 선택 */}
           {isWeeklyReport && (
               <div>
-                <label htmlFor="week" className="block text-sm font-medium text-gray-700 mb-2">주차</label>
-                <select id="week" name="week" value={selectedWeek} onChange={handleWeekChange} disabled={!selectedYearMonth} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow disabled:bg-gray-100">
-                  <option value="" disabled>주차 선택</option>
+                <label htmlFor="round" className="block text-sm font-medium text-gray-700 mb-2">차수</label>
+                <select id="round" name="round" value={selectedWeek} onChange={handleWeekChange} disabled={!selectedYearMonth} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow disabled:bg-gray-100">
+                  <option value="" disabled>차수 선택</option>
                   {weeks.map(w => <option key={w} value={w}>{w}</option>)}
                 </select>
               </div>
