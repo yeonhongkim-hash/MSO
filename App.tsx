@@ -3,7 +3,7 @@ import Login from './components/Login';
 import SpreadsheetViewer from './components/SpreadsheetViewer';
 import ReportSelector from './components/ReportSelector';
 import CategorySelector from './components/CategorySelector';
-import { verifyPassword, getReportData } from './services/googleSheetService';
+import { verifyPassword, getReportData, clearReportCache } from './services/googleSheetService';
 import type { Report } from './types';
 
 // 1. 카테고리 타입에 '월마감예측' 추가 
@@ -30,7 +30,8 @@ const App: React.FC = () => {
         try {
             const isVerified = await verifyPassword(password);
             if (isVerified) {
-                const reportData = await getReportData();
+                clearReportCache();
+                const reportData = await getReportData(true);
                 setReports(reportData);
                 setIsAuthenticated(true);
             } else {

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { Report } from '../types';
+import { getReportRound, matchesReportCategory } from '../types';
 
 type Category = '보고서' | '추가자료' | '차수별보고서' | '월마감예측';
 
@@ -18,7 +19,7 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
   const isMonthlyForecast = selectedCategory === '월마감예측';
 
   const filteredReports = useMemo(() => {
-    return reports.filter(r => r.category === selectedCategory);
+    return reports.filter(r => matchesReportCategory(r, selectedCategory));
   }, [reports, selectedCategory]);
 
   // 🔥 1. 월마감예측인 경우 자동 실행 (화면 렌더링 생략)
@@ -56,7 +57,7 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
   const rounds = useMemo(() => {
     if (!isRoundReport || !selectedYearMonth) return [];
     const relevantReports = filteredReports.filter(r => r.yearMonth === selectedYearMonth);
-    const uniqueRounds = new Set(relevantReports.map(r => r.round).filter(Boolean));
+    const uniqueRounds = new Set(relevantReports.map(r => getReportRound(r)).filter(Boolean));
     return Array.from(uniqueRounds).sort();
   }, [filteredReports, selectedYearMonth, isRoundReport]);
 
@@ -66,7 +67,7 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
 
     const relevantReports = filteredReports.filter(r => {
         const matchYear = r.yearMonth === selectedYearMonth;
-        const matchRound = isRoundReport ? r.round === selectedRound : true;
+        const matchRound = isRoundReport ? getReportRound(r) === selectedRound : true;
         return matchYear && matchRound;
     });
 
@@ -144,7 +145,7 @@ const ReportSelector: React.FC<ReportSelectorProps> = ({ reports, selectedCatego
     if (isRoundReport) {
         report = filteredReports.find(
             r => r.yearMonth === selectedYearMonth && 
-                 r.round === selectedRound && 
+                 getReportRound(r) === selectedRound && 
                  r.branch === selectedHospital 
         );
     } else {

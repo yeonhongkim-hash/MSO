@@ -3,12 +3,13 @@ import type { Report } from '../types';
 // Cache
 let cachedReports: Report[] | null = null;
 
-type ReportCategory = Report['category'];
+type ReportCategory = '보고서' | '추가자료' | '차수별보고서' | '월마감예측';
 
 const normalizeCategory = (raw: string): ReportCategory | null => {
-    if (raw === '주차별보고서') return '차수별보고서';
-    if (raw === '보고서' || raw === '추가자료' || raw === '차수별보고서' || raw === '월마감예측') {
-        return raw;
+    const value = (raw ?? '').trim();
+    if (value === '주차별보고서') return '차수별보고서';
+    if (value === '보고서' || value === '추가자료' || value === '차수별보고서' || value === '월마감예측') {
+        return value;
     }
     return null;
 };
@@ -101,8 +102,12 @@ export const verifyPassword = async (inputPassword: string): Promise<boolean> =>
 /**
  * 보고서 데이터 가져오기 (API 호출)
  */
-export const getReportData = async (): Promise<Report[]> => {
-    if (cachedReports) return cachedReports;
+export const clearReportCache = () => {
+    cachedReports = null;
+};
+
+export const getReportData = async (forceRefresh = false): Promise<Report[]> => {
+    if (cachedReports && !forceRefresh) return cachedReports;
 
     try {
         const response = await fetch('/api/reports');
