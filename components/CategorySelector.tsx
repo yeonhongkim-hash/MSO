@@ -39,8 +39,8 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ onSelect }) => {
             className="w-full text-left p-6 border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="차수별 보고서 조회하기"
           >
-            <h2 className="text-lg font-semibold text-gray-800">주차별 인사이트 보고서</h2>
-            <p className="text-gray-600 mt-1">주차별 인사이트 자료를 조회합니다.</p>
+            <h2 className="text-lg font-semibold text-gray-800">차수별 인사이트 보고서</h2>
+            <p className="text-gray-600 mt-1">차수별 인사이트 자료를 조회합니다.</p>
           </button>
 
           {/* 2. 월마감예측 버튼 추가 */}
